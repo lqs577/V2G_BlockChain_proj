@@ -1,5 +1,6 @@
 from auction import *
 from data_process import *
+from entities_nodes import *
 
 if __name__ == '__main__':
     p_req_list = calculate_p_req()
@@ -41,8 +42,8 @@ if __name__ == '__main__':
                 ch_sum += 1
             elif item.state == -1:
                 dc_sum += 1
-        ch_sum_list.append(ch_sum*7)
-        dc_sum_list.append(dc_sum*7)
+        ch_sum_list.append(ch_sum * 7)
+        dc_sum_list.append(dc_sum * 7)
 
     paint2(ch_sum_list, dc_sum_list)
     # paint1(load_list1, load_list2, load_list3, load_list4, load_list5)

@@ -89,6 +89,7 @@ class Aggregator:
         self.bid_list = []
         self.w_low = 0
         self.w_loss = 0
+        self.trans = []  # aggregator transactions queue
 
         # …………#parameters
         self.w1 = 0
@@ -221,13 +222,14 @@ class EV:
         self.b = 0
         self.w_loss = 0
         self.r_v = 0
-        self.state = 0  # -1 value->discharging, 0 value->idle, 1-value->charging
+        self.state = 0  # -1 value->discharging, 0 value->idle, 1-value->charging, -2 ->not in charging station
         self.w_ch = 0  # charging price(last past 30 min)
         self.q_prov = 0
         self.w_bid = 0
         self.w_r = 0  # expected revenue in frequency regulation
         self.reg_permission = 0
         self.q_accept = 0  # electricity amount can accept
+        self.trans = []  # EV transactions
 
         # ………………parameter#
         self.beta = 0
@@ -265,6 +267,7 @@ class EV:
 
     # …………………………………………………………#
 
+    # change ev state #
     def start_discharge(self):
         self.state = -1
 
@@ -273,6 +276,14 @@ class EV:
 
     def start_idle(self):
         self.state = 0
+
+    def run(self):
+        self.state = -2
+
+    def stop(self):
+        self.state = 1
+
+    # -- change ev state --#
 
     def initialize(self):
         self.f_q_prov()
@@ -292,94 +303,8 @@ class EV:
         self.w_r = w_r
 
 
-# stop and move distribution
-def ev_distribution(num, t):
-    # how much evs will stop
-    y1 = [0, 0.001, 0.002, 0.002, 0.002, 0.003, 0.003, 0.004, 0.006, 0.009, 0.02, 0.03, 0.06, 0.10, 0.03, 0.06, 0.10,
-          0.15, 0.20, 0.15, 0.08, 0.04, 0.02, 0.01]
-    y2 = [0, 0.001, 0.002, 0.002, 0.01, 0.02, 0.05, 0.09, 0.14, 0.20, 0.12, 0.04, 0.03, 0.06, 0.08, 0.03, 0.02,
-          0.015, 0.01, 0.005, 0.003, 0.002, 0.001, 0.0005]
-    sum1 = 0
-    for i in range(len(y1)):
-        sum1 += y1[i]
-    for i in range(len(y1)):
-        y1[i] = (y1[i] / sum1)
-    sum1 = 0
-    for i in range(len(y2)):
-        sum1 += y2[i]
-    for i in range(len(y2)):
-        y2[i] = (y2[i] / sum1)
-    num -= num * 0.05
-    num1 = 0.9 * num
-    stop_num_list = []
-    for i in range(24):
-        num1 += y1[i] * num * 0.9
-        num1 -= y2[i] * num * 0.9
-        stop_num_list.append(int(num1 + 0.1 * num))
-    return stop_num_list[t]
-
-
-def select_aggregator(list_v, list_a):
-    result = []
-    a_idle_list = []
-    for i in range(len(list_a)):
-        a_idle_list.append(0)
-    for i in range(len(list_v)):
-        sub_result = []
-        sub_idle_list = []
-        # find aggregator that can accommodate ev
-        for i1 in range(len(list_a)):
-            if a_idle_list[i1] == 0:
-                sub_idle_list.append(i1)
-        a_num = sub_idle_list[random.randint(0, len(sub_idle_list) - 1)]
-        a_k = select_pile(list_a[a_num].pile_list)
-
-        # when aggregator cant accommodate any ev
-        if a_k == -1:
-            i -= 1
-            a_idle_list[a_num] = 1
-            # check if all aggregator is full load
-            for i2 in range(len(list_a)):
-                if a_idle_list[i2] == 0:
-                    break
-                if i2 == len(list_v) - 1 and a_idle_list[i2] == 1:
-                    return result
-            continue
-        sub_result.append(a_num)
-        sub_result.append(a_k)
-        result.append(sub_result)
-    return result
-
-
-def select_pile(pile_list):
-    index1 = random.randint(0, 1499)
-    index2 = random.randint(0, 1499)
-    if pile_list[index1] == 0:
-        return index1
-    elif pile_list[index2] == 0:
-        return index2
-    idle = []
-    for i in range(len(pile_list)):
-        if pile_list[i] == 0:
-            idle.append(i)
-    if len(idle) - 1 >= 0:
-        return idle[random.randint(0, len(idle) - 1)]
-    else:
-        return -1
-
-
-# generate aggregator's parameters
-def generate_agg_para(num):
-    return 0
-
-
-# generate evs' parameters
-def generate_ev_para(num):
-    return 0
-
-
 if __name__ == '__main__':
-    # how much evs will stop
+    # stopping ev numbers
     y11 = [0, 0.001, 0.002, 0.002, 0.002, 0.003, 0.003, 0.004, 0.006, 0.009, 0.02, 0.03, 0.06, 0.10, 0.03, 0.06, 0.10,
            0.15, 0.20, 0.15, 0.08, 0.04, 0.02, 0.01]
     y22 = [0, 0.001, 0.002, 0.002, 0.01, 0.02, 0.05, 0.09, 0.14, 0.20, 0.12, 0.04, 0.03, 0.06, 0.08, 0.03, 0.02,
