@@ -1,6 +1,5 @@
-import numpy as np
-from entities_nodes import *
 import gc
+import parameters
 
 # ——————————————  parameters#
 aggregator_num = 180

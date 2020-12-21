@@ -1,6 +1,5 @@
-from auction import *
+from models.auction import *
 from data_process import *
-from entities_nodes import *
 
 if __name__ == '__main__':
     p_req_list = calculate_p_req()
