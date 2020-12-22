@@ -20,6 +20,7 @@ class Grid:
         self.p_ch = 0  # sum of charging power in grid
         self.p_dc = 0  # sum of discharging power in grid
         self.bid_list = []
+        self.all_trans = []
 
         # ………………parameters#
         self.w1 = 0
@@ -114,6 +115,7 @@ class Aggregator:
 
                 if self.pile_list[i].q_accept > 0:
                     self.p_accept += self.ch_power
+                    self.pile_list[i].trans.append([self.pile_list[i].i_v, self.i_a])
 
     # regulate up the frequency
     def up_regulation(self, p):
@@ -215,7 +217,8 @@ class Aggregator:
 class EV:
     def __init__(self):
         self.i_v = 0
-        self.i_a = 0
+        self.i_a = 0  # the aggregator number
+        self.i_a_p = 0  # the charging pile number
         self.soc = 0
         self.soc_min = 0
         self.soc_max = 0
@@ -279,9 +282,6 @@ class EV:
 
     def run(self):
         self.state = -2
-
-    def stop(self):
-        self.state = 1
 
     # -- change ev state --#
 

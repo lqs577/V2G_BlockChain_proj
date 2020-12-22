@@ -1,16 +1,15 @@
 from entities.entities_nodes import *
 
 
-# allocate EVs to  aggregators
-def select_aggregator(list_v, list_a):
-    result = []
-    a_idle_list = []
+# EV select aggregator and charging pile
+# a simple random model is used
+# one can be replaced by a well-designed model, such as energy and time cost depended model
+# and can be combined with the path planning depended model
+def select_aggregator(list_a, a_idle_list):
+    sub_result = []
+    sub_idle_list = []
+    # find aggregator that can accommodate ev
     for i in range(len(list_a)):
-        a_idle_list.append(0)
-    for i in range(len(list_v)):
-        sub_result = []
-        sub_idle_list = []
-        # find aggregator that can accommodate ev
         for i1 in range(len(list_a)):
             if a_idle_list[i1] == 0:
                 sub_idle_list.append(i1)
@@ -19,25 +18,24 @@ def select_aggregator(list_v, list_a):
 
         # when aggregator cant accommodate any ev
         if a_k == -1:
-            i -= 1
             a_idle_list[a_num] = 1
-            # check if all aggregator is full load
+            # check if all aggregator is full loaded
             for i2 in range(len(list_a)):
                 if a_idle_list[i2] == 0:
                     break
-                if i2 == len(list_v) - 1 and a_idle_list[i2] == 1:
-                    return result
+                if i2 == len(list_a) - 1:
+                    return None
             continue
         sub_result.append(a_num)
         sub_result.append(a_k)
-        result.append(sub_result)
-    return result
+        break
+    return sub_result, a_idle_list
 
 
 # allocate EVs to  piles
 def select_pile(pile_list):
-    index1 = random.randint(0, 1499)
-    index2 = random.randint(0, 1499)
+    index1 = random.randint(0, len(pile_list) - 1)
+    index2 = random.randint(0, len(pile_list) - 1)
     if pile_list[index1] == 0:
         return index1
     elif pile_list[index2] == 0:

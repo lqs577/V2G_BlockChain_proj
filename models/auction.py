@@ -1,15 +1,8 @@
 import gc
 import parameters
 
-# ——————————————  parameters#
-aggregator_num = 180
-ev_num = 360000
 
-
-# ————————————————————#
-
-
-def auction(grid, aggregator_list, ev_list, p_req, t, beta1, beta2):
+def auction(grid, aggregator_list, ev_list, t):
     # caculate ch and dc power before auction
     grid.p_ch = 0
     grid.p_dc = 0
@@ -49,7 +42,7 @@ def auction(grid, aggregator_list, ev_list, p_req, t, beta1, beta2):
                         temp.f_q_prov()
                         temp.set_bid_price(aggregator_list[k].w_bid)
                         ev_bid_info = temp.pack_bid_info()
-                        if ev_bid_info != None:
+                        if ev_bid_info is not None:
                             aggregator_list[k].score(ev_bid_info)
                 ev_choose_result = aggregator_list[k].choose()
                 for m in range(len(ev_choose_result)):
@@ -77,11 +70,5 @@ def auction(grid, aggregator_list, ev_list, p_req, t, beta1, beta2):
     p_dc_after = grid.p_dc
     print(str(t) + " :after auction: charging power=" + str(p_ch_after) + ",discharging power=" + str(p_dc_after))
 
-    result_list = []
-    result_list.append(p_ch_after - p_dc_after - p_ch_before)
-    result_list.append(ev_list)
-    result_list.append(aggregator_list)
-    result_list.append(grid)
-    del ev_list, aggregator_list
-    gc.collect()
+    result_list = [p_ch_after - p_dc_after - p_ch_before, ev_list, aggregator_list, grid]
     return result_list
