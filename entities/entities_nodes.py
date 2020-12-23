@@ -20,7 +20,8 @@ class Grid:
         self.p_ch = 0  # sum of charging power in grid
         self.p_dc = 0  # sum of discharging power in grid
         self.bid_list = []
-        self.all_trans = []
+        self.all_trans = []  # all transactions in this system
+        self.trans = []  # transactions issued by grid，[sender, accept, type, time], type=0,1
 
         # ………………parameters#
         self.w1 = 0
@@ -90,7 +91,7 @@ class Aggregator:
         self.bid_list = []
         self.w_low = 0
         self.w_loss = 0
-        self.trans = []  # aggregator transactions queue
+        self.trans = []  # aggregator transactions queue, [sender, accept, type, time], type=0,1
 
         # …………#parameters
         self.w1 = 0
@@ -232,7 +233,7 @@ class EV:
         self.w_r = 0  # expected revenue in frequency regulation
         self.reg_permission = 0
         self.q_accept = 0  # electricity amount can accept
-        self.trans = []  # EV transactions
+        self.trans = []  # EV transactions, [sender, accept, type, time], type=0,1
 
         # ………………parameter#
         self.beta = 0

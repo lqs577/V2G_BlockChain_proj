@@ -66,7 +66,7 @@ def initialization():
                 ev_list[j].i_a = select_result[0]
                 ev_list[j].i_a_p = select_result[1]
                 # add transaction application
-                ev_list[j].trans.append([j, select_result[0]])
+                ev_list[j].trans.append([j, select_result[0]], 0, 0.0)
                 # grid.all_trans.append([j, select_result[0]])
                 # set stopping states
                 ev_list[j].soc = initial_soc()
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                         aggregator_list[ev.i_a].pile_list[ev.i_a_p] = 0
                         ev.i_a_p = -1
                         ev.i_a = -1
-                        grid.all_trans += ev.trans
+                        # grid.all_trans += ev.trans
                 else:
                     if random.random() < arr_prob:
                         a_idle_list = []
@@ -147,7 +147,7 @@ if __name__ == '__main__':
                             ev.i_a = select_result[0]
                             ev.i_a_p = select_result[1]
                             # add transaction application
-                            ev.trans.append([j, select_result[0]])
+                            ev.trans.append([j, select_result[0], 0, i + 0.1 * j])
                             # grid.all_trans.append([j, select_result[0]])
                             # set stopping states
                             ev.soc = arr_soc()
