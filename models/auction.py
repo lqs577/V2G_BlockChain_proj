@@ -21,7 +21,7 @@ def auction(grid, aggregator_list, ev_list, t):
             aggregator_list[k].f_p_prov()
             aggregator_list[k].set_bid_price(aggregator_list[k].w_low, aggregator_list[k].w_loss, grid.w_req)
             bid_info1 = aggregator_list[k].pack_bid_info()
-            # score bid_info and put it into bid_list
+            # score bid_info and put it into bid_listq
             grid.score(bid_info1)
         # choose aggregator in turn
         choose_result = grid.choose()
@@ -48,7 +48,7 @@ def auction(grid, aggregator_list, ev_list, t):
                 ev_choose_result = aggregator_list[k].choose()
                 for m in range(len(ev_choose_result)):
                     ev_list[ev_choose_result[m][0]].reg_permission = 1
-                    aggregator_list[k].trans.append([k, ev_choose_result[m][0], 0, t])
+                    aggregator_list[k].trans.append([k, ev_choose_result[m][0], 1, t])
                     ev_list[ev_choose_result[m][0]].start_discharge()
             aggregator_list[k].reg_permission = 0
     # ……………………………………………………………………#
@@ -56,10 +56,10 @@ def auction(grid, aggregator_list, ev_list, t):
     if grid.p_req < 0:
         p_accept_sum = 0
         for k in range(len(aggregator_list)):
-            aggregator_list[k].f_p_accept()
+            aggregator_list[k].f_p_accept(t)
             p_accept_sum += aggregator_list[k].p_accept
             if aggregator_list[k].p_accept > 0:
-                aggregator_list[k].trans.append([k, -1])
+                aggregator_list[k].trans.append([k, -1, 0, t])
         for k in range(len(aggregator_list)):
             aggregator_list[k].up_regulation(abs(grid.p_req) * (aggregator_list[k].p_accept / p_accept_sum))
 

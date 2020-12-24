@@ -8,6 +8,14 @@ from entities.entities_nodes import *
 def select_aggregator(list_a, a_idle_list):
     sub_result = []
     sub_idle_list = []
+
+    # check if all the aggregators is full loaded
+    for i2 in range(len(list_a)):
+        if a_idle_list[i2] == 0:
+            break
+        if i2 == len(list_a) - 1:
+            return None, a_idle_list
+
     # find aggregator that can accommodate ev
     for i in range(len(list_a)):
         for i1 in range(len(list_a)):
@@ -19,12 +27,6 @@ def select_aggregator(list_a, a_idle_list):
         # when aggregator cant accommodate any ev
         if a_k == -1:
             a_idle_list[a_num] = 1
-            # check if all aggregator is full loaded
-            for i2 in range(len(list_a)):
-                if a_idle_list[i2] == 0:
-                    break
-                if i2 == len(list_a) - 1:
-                    return None
             continue
         sub_result.append(a_num)
         sub_result.append(a_k)

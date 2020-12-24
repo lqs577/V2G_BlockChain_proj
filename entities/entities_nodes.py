@@ -4,6 +4,7 @@ import numpy as np
 from scipy.interpolate import make_interp_spline
 import matplotlib.pyplot as plt
 import seaborn as sns
+from parameters import *
 
 
 # ……………………# Initialize parameter
@@ -91,7 +92,8 @@ class Aggregator:
         self.bid_list = []
         self.w_low = 0
         self.w_loss = 0
-        self.trans = []  # aggregator transactions queue, [sender, accept, type, time], type=0,1
+        self.trans = []  # aggregator transactions queue, [sender, accept, type, time], type=0 means issued by evs,
+        # type=1 means issued by aggregator
 
         # …………#parameters
         self.w1 = 0
@@ -101,7 +103,7 @@ class Aggregator:
         # ………………
 
     def initial_pile_list(self):
-        for i in range(1500):
+        for i in range(piles_number):
             self.pile_list.append(0)
 
     def update_pile_list(self, ev, k):
@@ -109,14 +111,15 @@ class Aggregator:
 
     # ………………the first-level auction#
     # caculate charging power that can be increased
-    def f_p_accept(self):
+    def f_p_accept(self, t):
         for i in range(len(self.pile_list)):
             if self.pile_list[i] != 0:
                 self.pile_list[i].f_q_accept()
 
                 if self.pile_list[i].q_accept > 0:
                     self.p_accept += self.ch_power
-                    self.pile_list[i].trans.append([self.pile_list[i].i_v, self.i_a])
+                    self.pile_list[i].trans.append([self.pile_list[i].i_v, self.i_a, 0, t])
+                    self.pile_list[i].d_fr_flag = 1
 
     # regulate up the frequency
     def up_regulation(self, p):
@@ -200,7 +203,7 @@ class Aggregator:
 
     def initialize(self):
         self.f_p_prov()
-        self.f_p_accept()
+        # self.f_p_accept(0)
 
     def put(self, i_a, w_ch, w_dc, r_a):
         self.i_a = i_a
@@ -234,6 +237,7 @@ class EV:
         self.reg_permission = 0
         self.q_accept = 0  # electricity amount can accept
         self.trans = []  # EV transactions, [sender, accept, type, time], type=0,1
+        self.d_fr_flag = 0  # flag mark whether this ev participant in a down frequency regulation
 
         # ………………parameter#
         self.beta = 0

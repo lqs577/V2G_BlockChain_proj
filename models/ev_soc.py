@@ -56,22 +56,21 @@ def arr_soc():
 # each minutes charge 0.003 soc
 def soc_change(soc, state, t, fr_flag):
     if state == 0:
-        return soc
+        soc = soc
     elif state == 1:
         soc += 0.003 * t
+        if soc >= 0.9 and fr_flag == 0:
+            soc = 0.9
+            state = 0
+        elif soc >= 1.0:
+            soc = 1.0
+            state = 0
     elif state == -1:
         soc -= 0.003 * t
-    if soc <= 0.6:
-        soc = 0.6
-        state = 0
-    if soc >= 0.9 and fr_flag == 1:
-        soc += 0.003 * t
-    elif soc >= 0.9 and fr_flag == 0:
-        soc = 0.9
-        state = 0
-    elif soc >= 1.0:
-        soc = 1.0
-        state = 0
+        if soc <= 0.6:
+            soc = 0.6
+            state = 0
+
     return soc, state
 
 

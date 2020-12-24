@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from models.power_requirenment import calculate_p_req
 from utils.data_process import *
 from models.ev_distribution import *
@@ -5,9 +7,6 @@ from models.ev_select_pile import *
 from models.auction import *
 from models.ev_soc import *
 from parameters import *
-
-# the transaction queue in blockchain
-trans_queue = []
 
 
 def initialization():
@@ -35,6 +34,9 @@ def initialization():
 
     # initialize EVs node
     ev_stop_num = ev_distribution(0)
+    a_idle_list = []
+    for m in range(len(aggregator_list)):
+        a_idle_list.append(0)
     for j in range(ev_num):
         temp = EV()
         temp.i_v = j
@@ -54,19 +56,18 @@ def initialization():
         ev_list.append(temp)
 
         # bundle the EVs and charging piles of aggregators
-        a_idle_list = []
-        for k in range(len(aggregator_list)):
-            a_idle_list.append(0)
+
         # if EV is in stopping state
         if random.random() < ev_stop_num / ev_num:
             select_result, a_idle_list = select_aggregator(aggregator_list, a_idle_list)
             # if is there idle charging piles
             if select_result is not None:
+                print(select_result)
                 aggregator_list[select_result[0]].pile_list[select_result[1]] = ev_list[j]
                 ev_list[j].i_a = select_result[0]
                 ev_list[j].i_a_p = select_result[1]
                 # add transaction application
-                ev_list[j].trans.append([j, select_result[0]], 0, 0.0)
+                ev_list[j].trans.append([j, select_result[0], 0, 0])
                 # grid.all_trans.append([j, select_result[0]])
                 # set stopping states
                 ev_list[j].soc = initial_soc()
@@ -88,12 +89,12 @@ def initialization():
 
     print("complete initializing EV")
 
-    return grid, aggregator_list, ev_list
+    return grid, aggregator_list, ev_list, a_idle_list
 
 
 if __name__ == '__main__':
     # initialize entities nodes
-    grid, aggregator_list, ev_list = initialization()
+    grid, aggregator_list, ev_list, a_idle_list = initialization()
 
     p_req_list = calculate_p_req()
     p_result1 = []
@@ -119,27 +120,22 @@ if __name__ == '__main__':
         # for each there minutes update system states
         depart_prob = y2[i] / 20
         arr_prob = y1[i] / 20
-        if grid.p_req < 0:
-            fr_flag = 1
-        else:
-            fr_flag = 0
 
         # change ev attributes in each 3 min depend on the models
         for j in range(0, 20):
+            print('t= ' + str(i + 3 * j / 60))
             for ev in ev_list:
                 if ev.state != -2:
-                    ev.soc, ev.state = soc_change(ev.soc, ev.state, 3, fr_flag)
+                    ev.soc, ev.state = soc_change(ev.soc, ev.state, 3, ev.d_fr_flag)
                     # if this ev leave charging station
                     if random.random() < depart_prob:
+                        a_idle_list[ev.i_a] = 0
                         aggregator_list[ev.i_a].pile_list[ev.i_a_p] = 0
                         ev.i_a_p = -1
                         ev.i_a = -1
                         # grid.all_trans += ev.trans
                 else:
                     if random.random() < arr_prob:
-                        a_idle_list = []
-                        for k in range(len(aggregator_list)):
-                            a_idle_list.append(0)
                         select_result, a_idle_list = select_aggregator(aggregator_list, a_idle_list)
                         # if is there idle charging piles
                         if select_result is not None:
@@ -147,8 +143,7 @@ if __name__ == '__main__':
                             ev.i_a = select_result[0]
                             ev.i_a_p = select_result[1]
                             # add transaction application
-                            ev.trans.append([j, select_result[0], 0, i + 0.1 * j])
-                            # grid.all_trans.append([j, select_result[0]])
+                            ev.trans.append([j, select_result[0], 0, i + 3 * j / 60])
                             # set stopping states
                             ev.soc = arr_soc()
                             ev.start_charge()
@@ -157,6 +152,8 @@ if __name__ == '__main__':
                             ev_list[j].i_a = -1
                             ev_list[j].i_a_p = -1
                             ev_list[j].run()
+        for ev in ev_list:
+            ev.d_fr_flag = 0
 
     ch_sum_list = []
     dc_sum_list = []
@@ -171,5 +168,15 @@ if __name__ == '__main__':
         ch_sum_list.append(ch_sum * 7)
         dc_sum_list.append(dc_sum * 7)
 
-    paint2(ch_sum_list, dc_sum_list)
+    all_trans = []
+    for ev in ev_list:
+        all_trans += ev.trans
+        print(ev.trans)
+    for aggregator in aggregator_list:
+        all_trans += aggregator.trans
+    all_trans += grid.trans
+    all_trans = sorted(all_trans, key=itemgetter(3))
+    # print(all_trans[1:10000])
+    print(len(all_trans))
+    # paint2(ch_sum_list, dc_sum_list)
     # paint1(load_list1, load_list2, load_list3, load_list4, load_list5)
