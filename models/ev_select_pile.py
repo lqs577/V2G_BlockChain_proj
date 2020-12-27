@@ -27,7 +27,14 @@ def select_aggregator(list_a, a_idle_list):
         # when aggregator cant accommodate any ev
         if a_k == -1:
             a_idle_list[a_num] = 1
+            # check if all the aggregators is full loaded
+            for i2 in range(len(list_a)):
+                if a_idle_list[i2] == 0:
+                    break
+                if i2 == len(list_a) - 1:
+                    return None, a_idle_list
             continue
+
         sub_result.append(a_num)
         sub_result.append(a_k)
         break

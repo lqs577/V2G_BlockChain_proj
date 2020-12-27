@@ -62,12 +62,12 @@ def initialization():
             select_result, a_idle_list = select_aggregator(aggregator_list, a_idle_list)
             # if is there idle charging piles
             if select_result is not None:
-                print(select_result)
                 aggregator_list[select_result[0]].pile_list[select_result[1]] = ev_list[j]
                 ev_list[j].i_a = select_result[0]
                 ev_list[j].i_a_p = select_result[1]
                 # add transaction application
-                ev_list[j].trans.append([j, select_result[0], 0, 0])
+                if random.random() < y1[0]:
+                    ev_list[j].trans.append([j, select_result[0], 0, random.randint(0, 47)])
                 # grid.all_trans.append([j, select_result[0]])
                 # set stopping states
                 ev_list[j].soc = initial_soc()
@@ -97,6 +97,7 @@ if __name__ == '__main__':
     grid, aggregator_list, ev_list, a_idle_list = initialization()
 
     p_req_list = calculate_p_req()
+    # p_req_list += p_req_list
     p_result1 = []
     p_result2 = []
     p_result3 = []
@@ -108,6 +109,8 @@ if __name__ == '__main__':
     load_list4 = []
     load_list5 = []
     ev_result_list = []
+    # y1 += y1
+    # y2 += y2
 
     for i in range(0, 24):
         grid.p_req = p_req_list[i]
@@ -143,7 +146,7 @@ if __name__ == '__main__':
                             ev.i_a = select_result[0]
                             ev.i_a_p = select_result[1]
                             # add transaction application
-                            ev.trans.append([j, select_result[0], 0, i + 3 * j / 60])
+                            ev.trans.append([ev.i_v, select_result[0], 0, i + 3 * j / 60])
                             # set stopping states
                             ev.soc = arr_soc()
                             ev.start_charge()
@@ -171,12 +174,16 @@ if __name__ == '__main__':
     all_trans = []
     for ev in ev_list:
         all_trans += ev.trans
-        print(ev.trans)
     for aggregator in aggregator_list:
         all_trans += aggregator.trans
     all_trans += grid.trans
     all_trans = sorted(all_trans, key=itemgetter(3))
-    # print(all_trans[1:10000])
+    count = []
+    for i in range(48):
+        count.append(0)
+    for item in all_trans:
+        count[int(item[3])] += 1
+    print(count[11:35])
     print(len(all_trans))
     # paint2(ch_sum_list, dc_sum_list)
     # paint1(load_list1, load_list2, load_list3, load_list4, load_list5)
