@@ -67,7 +67,7 @@ def initialization():
                 ev_list[j].i_a_p = select_result[1]
                 # add transaction application
                 if random.random() < y1[0]:
-                    ev_list[j].trans.append([j, select_result[0], 0, random.randint(0, 47)])
+                    ev_list[j].trans.append([j, select_result[0], 0, 0])
                 # grid.all_trans.append([j, select_result[0]])
                 # set stopping states
                 ev_list[j].soc = initial_soc()
@@ -95,9 +95,9 @@ def initialization():
 if __name__ == '__main__':
     # initialize entities nodes
     grid, aggregator_list, ev_list, a_idle_list = initialization()
-
+    y1, y2 = normalization(y1, y2)
     p_req_list = calculate_p_req()
-    # p_req_list += p_req_list
+    p_req_list += p_req_list
     p_result1 = []
     p_result2 = []
     p_result3 = []
@@ -109,10 +109,10 @@ if __name__ == '__main__':
     load_list4 = []
     load_list5 = []
     ev_result_list = []
-    # y1 += y1
-    # y2 += y2
+    y1 += y1
+    y2 += y2
 
-    for i in range(0, 24):
+    for i in range(0, 48):
         grid.p_req = p_req_list[i]
         temp1 = auction(grid, aggregator_list, ev_list, i)
         ev_result_list.append(temp1[1])
@@ -126,7 +126,7 @@ if __name__ == '__main__':
 
         # change ev attributes in each 3 min depend on the models
         for j in range(0, 20):
-            print('t= ' + str(i + 3 * j / 60))
+            # print('t= ' + str(i + 3 * j / 60))
             for ev in ev_list:
                 if ev.state != -2:
                     ev.soc, ev.state = soc_change(ev.soc, ev.state, 3, ev.d_fr_flag)
@@ -146,7 +146,7 @@ if __name__ == '__main__':
                             ev.i_a = select_result[0]
                             ev.i_a_p = select_result[1]
                             # add transaction application
-                            ev.trans.append([ev.i_v, select_result[0], 0, i + 3 * j / 60])
+                            ev.trans.append([ev.i_v, select_result[0], 0, i + 3 * j / 60 + 3])
                             # set stopping states
                             ev.soc = arr_soc()
                             ev.start_charge()
@@ -179,11 +179,11 @@ if __name__ == '__main__':
     all_trans += grid.trans
     all_trans = sorted(all_trans, key=itemgetter(3))
     count = []
-    for i in range(48):
+    for i in range(52):
         count.append(0)
     for item in all_trans:
         count[int(item[3])] += 1
-    print(count[11:35])
+    print(count[0:48])
     print(len(all_trans))
     # paint2(ch_sum_list, dc_sum_list)
     # paint1(load_list1, load_list2, load_list3, load_list4, load_list5)
