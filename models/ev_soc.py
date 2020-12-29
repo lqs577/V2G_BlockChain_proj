@@ -65,13 +65,15 @@ def soc_change(soc, state, t, fr_flag):
         elif soc >= 1.0:
             soc = 1.0
             state = 0
+            if fr_flag == 1:
+                fr_flag = 0
     elif state == -1:
         soc -= 0.003 * t
         if soc <= 0.6:
             soc = 0.6
             state = 0
 
-    return soc, state
+    return soc, state, fr_flag
 
 
 if __name__ == '__main__':

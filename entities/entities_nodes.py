@@ -118,11 +118,18 @@ class Aggregator:
 
                 if self.pile_list[i].q_accept > 0:
                     self.p_accept += self.ch_power
-                    self.pile_list[i].trans.append([self.pile_list[i].i_v, self.i_a, 0, t])
-                    self.pile_list[i].d_fr_flag = 1
+
+    # down frequency regulation power in the end of the last time period
+    def f_d_q(self):
+        q = 0
+        for item in self.pile_list:
+            if item != 0:
+                if item.state == 1 and item.d_fr_flag == 1:
+                    q += self.ch_power
+        return q
 
     # regulate up the frequency
-    def up_regulation(self, p):
+    def up_regulation(self, p, t):
         list1 = []
         for i in range(len(self.pile_list)):
             sublist = []
@@ -134,7 +141,10 @@ class Aggregator:
         sorted(list1, key=lambda x: x[1], reverse=True)
         i = 0
         while p > 0 and i < len(list1):
+            ev = self.pile_list[list1[i][0]]
             self.pile_list[list1[i][0]].start_charge()
+            self.pile_list[list1[i][0]].trans.append([ev.i_v, ev.i_a, 0, t])
+            self.pile_list[list1[i][0]].d_fr_flag = 1
             i += 1
             p -= self.ch_power
 
@@ -238,6 +248,9 @@ class EV:
         self.q_accept = 0  # electricity amount can accept
         self.trans = []  # EV transactions, [sender, accept, type, time], type=0,1
         self.d_fr_flag = 0  # flag mark whether this ev participant in a down frequency regulation
+        self.arr_time = -1.0
+        self.leave_time = -1.0  # The time EV arrive at and leave charging station time
+        self.stop_time = []  # the time list of arrive and leave
 
         # ………………parameter#
         self.beta = 0
