@@ -143,7 +143,7 @@ class Aggregator:
         while p > 0 and i < len(list1):
             ev = self.pile_list[list1[i][0]]
             self.pile_list[list1[i][0]].start_charge()
-            self.pile_list[list1[i][0]].trans.append([ev.i_v, ev.i_a, 0, t])
+            self.pile_list[list1[i][0]].trans.append([ev.i_v, ev.i_a, 0, t+1])
             self.pile_list[list1[i][0]].d_fr_flag = 1
             i += 1
             p -= self.ch_power
@@ -250,7 +250,7 @@ class EV:
         self.d_fr_flag = 0  # flag mark whether this ev participant in a down frequency regulation
         self.arr_time = -1.0
         self.leave_time = -1.0  # The time EV arrive at and leave charging station time
-        self.stop_time = []  # the time list of arrive and leave
+        self.time_period = []  # the time list of arrive and leave
 
         # ………………parameter#
         self.beta = 0

@@ -7,6 +7,7 @@ from models.ev_select_pile import *
 from models.auction import *
 from models.ev_soc import *
 from parameters import *
+from utils.transaction_manager import *
 
 
 def initialization():
@@ -65,6 +66,7 @@ def initialization():
                 aggregator_list[select_result[0]].pile_list[select_result[1]] = ev_list[j]
                 ev_list[j].i_a = select_result[0]
                 ev_list[j].i_a_p = select_result[1]
+                ev_list[j].arr_time = 0
                 # add transaction application
                 if random.random() < y1[0]:
                     ev_list[j].trans.append([j, select_result[0], 0, 0])
@@ -90,6 +92,25 @@ def initialization():
     print("complete initializing EV")
 
     return grid, aggregator_list, ev_list, a_idle_list
+
+
+def get_sub_list(trans_queue):
+    trans_list = []
+    flag = 12
+    index = 0
+    start = -1
+    end = -1
+    for trans in trans_queue:
+        if trans[3] == flag and start == -1:
+            start = index
+        elif (trans[3] == flag + 1 and end == -1) or index == len(trans_queue) - 1:
+            end = index
+            trans_list.append([start, end])
+            start = -1
+            end = -1
+            flag += 1
+        index += 1
+    return trans_list
 
 
 if __name__ == '__main__':
@@ -140,12 +161,43 @@ if __name__ == '__main__':
                     ev.soc, ev.state, ev.d_fr_flag = soc_change(ev.soc, ev.state, 3, ev.d_fr_flag)
                     # if this ev leave charging station
                     if random.random() < depart_prob:
+                        ev.leave_time = i + 3 * j / 60
+                        if ev.arr_time < 11:
+                            if 11 <= ev.leave_time <= 34:
+                                ev.arr_time = 11
+                                t_period = [ev.arr_time, ev.leave_time, ev.i_a]
+                                ev.time_period.append(t_period)
+                                ev.arr_time = -1
+                                ev.leave_time = -1
+                            elif ev.leave_time > 34:
+                                ev.arr_time = 11
+                                ev.leave_time = 34
+                                t_period = [ev.arr_time, ev.leave_time, ev.i_a]
+                                ev.time_period.append(t_period)
+                                ev.arr_time = -1
+                                ev.leave_time = -1
+                        elif 11 <= ev.arr_time <= 34:
+                            if 11 <= ev.leave_time <= 34:
+                                t_period = [ev.arr_time, ev.leave_time, ev.i_a]
+                                ev.time_period.append(t_period)
+                                ev.arr_time = -1
+                                ev.leave_time = -1
+                            elif ev.leave_time > 34:
+                                ev.leave_time = 34
+                                t_period = [ev.arr_time, ev.leave_time, ev.i_a]
+                                ev.time_period.append(t_period)
+                                ev.arr_time = -1
+                                ev.leave_time = -1
+                        elif ev.arr_time > 34:
+                            ev.arr_time = -1
+                            ev.leave_time = -1
+
                         a_idle_list[ev.i_a] = 0
                         aggregator_list[ev.i_a].pile_list[ev.i_a_p] = 0
                         ev.i_a_p = -1
                         ev.i_a = -1
                         ev.state = -2
-                        # grid.all_trans += ev.trans
+                    # grid.all_trans += ev.trans
                 else:
                     if random.random() < arr_prob:
                         select_result, a_idle_list = select_aggregator(aggregator_list, a_idle_list)
@@ -159,14 +211,15 @@ if __name__ == '__main__':
                             # set stopping states
                             ev.soc = arr_soc()
                             ev.start_charge()
+                            ev.arr_time = i + 3 * j / 60
 
                         else:
                             ev_list[j].i_a = -1
                             ev_list[j].i_a_p = -1
                             ev_list[j].run()
-            if j % 3 == 0:
+            if j % 1 == 0:
                 for aggregator in aggregator_list:
-                    aggregator.trans.append([aggregator.i_a, -1, 0, i + 3 * j / 60])
+                    aggregator.trans.append([aggregator.i_a, -1, 2, i + 3 * j / 60])
     ch_sum_list = []
     dc_sum_list = []
     # for i in range(24):
@@ -181,18 +234,26 @@ if __name__ == '__main__':
     #     dc_sum_list.append(dc_sum * 7)
 
     all_trans = []
+    # trans_aggregation(ev_list, aggregator_list)
     for ev in ev_list:
         all_trans += ev.trans
     for aggregator in aggregator_list:
         all_trans += aggregator.trans
     all_trans += grid.trans
     all_trans = sorted(all_trans, key=itemgetter(3))
-    count = []
-    for i in range(48):
-        count.append(0)
-    for item in all_trans:
-        count[int(item[3])] += 1
-    print(count[11:35])
+    start_flag = 0
+    end_flag = 0
+    for i in range(len(all_trans)):
+        if all_trans[i][3] == 12 and start_flag == 0:
+            start_flag = i
+        if all_trans[i][3] == 36 and end_flag == 0:
+            end_flag = i
+            break
+    all_trans = all_trans[start_flag:end_flag]
     print(len(all_trans))
+
+    print(response_time(all_trans))
+    print(response_time(duo_prior_queue(all_trans)))
+
     # paint2(ch_sum_list, dc_sum_list)
     # paint1(load_list1, load_list2, load_list3, load_list4, load_list5)

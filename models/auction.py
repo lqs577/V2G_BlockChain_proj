@@ -33,7 +33,7 @@ def auction(grid, aggregator_list, ev_list, t):
             r2 = choose_result[k][1]
             # get the regulation permission
             aggregator_list[r1].reg_permission = 1
-            grid.trans.append([-1, r1, 0, t])
+            grid.trans.append([-1, r1, 2, t + 1])
             aggregator_list[r1].p_prov = r2
         # ……………………………………………………………………#
 
@@ -52,7 +52,7 @@ def auction(grid, aggregator_list, ev_list, t):
                 ev_choose_result = aggregator_list[k].choose()
                 for m in range(len(ev_choose_result)):
                     # ev_list[ev_choose_result[m][0]].reg_permission = 1
-                    aggregator_list[k].trans.append([k, ev_choose_result[m][0], 1, t])
+                    aggregator_list[k].trans.append([k, ev_choose_result[m][0], 1, t + 1])
                     ev_list[ev_choose_result[m][0]].start_discharge()
             aggregator_list[k].reg_permission = 0
     # ……………………………………………………………………#
@@ -63,7 +63,7 @@ def auction(grid, aggregator_list, ev_list, t):
             aggregator_list[k].f_p_accept(t)
             p_accept_sum += aggregator_list[k].p_accept
             if aggregator_list[k].p_accept > 0:
-                aggregator_list[k].trans.append([k, -1, 0, t])
+                aggregator_list[k].trans.append([k, -1, 2, t + 1])
             grid.p_req += aggregator_list[k].f_d_q()
         for k in range(len(aggregator_list)):
             aggregator_list[k].up_regulation(abs(grid.p_req) * (aggregator_list[k].p_accept / p_accept_sum), t)
