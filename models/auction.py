@@ -1,4 +1,6 @@
 import gc
+import random
+
 import parameters
 
 
@@ -33,7 +35,7 @@ def auction(grid, aggregator_list, ev_list, t):
             r2 = choose_result[k][1]
             # get the regulation permission
             aggregator_list[r1].reg_permission = 1
-            grid.trans.append([-1, r1, 2, t + 1])
+            grid.trans.append([-1, r1, 2, t + random.randint(0, 20) / 10])
             aggregator_list[r1].p_prov = r2
         # ……………………………………………………………………#
 
@@ -52,8 +54,10 @@ def auction(grid, aggregator_list, ev_list, t):
                 ev_choose_result = aggregator_list[k].choose()
                 for m in range(len(ev_choose_result)):
                     # ev_list[ev_choose_result[m][0]].reg_permission = 1
-                    aggregator_list[k].trans.append([k, ev_choose_result[m][0], 1, t + 1])
-                    ev_list[ev_choose_result[m][0]].start_discharge()
+                    if random.random() < 0.8:
+                        aggregator_list[k].trans.append(
+                            [k, ev_choose_result[m][0], 1, t + 0.5 + random.randint(0, 80) * 5 / 100])
+                        ev_list[ev_choose_result[m][0]].start_discharge()
             aggregator_list[k].reg_permission = 0
     # ……………………………………………………………………#
 
@@ -62,8 +66,6 @@ def auction(grid, aggregator_list, ev_list, t):
         for k in range(len(aggregator_list)):
             aggregator_list[k].f_p_accept(t)
             p_accept_sum += aggregator_list[k].p_accept
-            if aggregator_list[k].p_accept > 0:
-                aggregator_list[k].trans.append([k, -1, 2, t + 1])
             grid.p_req += aggregator_list[k].f_d_q()
         for k in range(len(aggregator_list)):
             aggregator_list[k].up_regulation(abs(grid.p_req) * (aggregator_list[k].p_accept / p_accept_sum), t)
@@ -79,5 +81,17 @@ def auction(grid, aggregator_list, ev_list, t):
     p_dc_after = grid.p_dc
     print(str(t) + " :after auction: charging power=" + str(p_ch_after) + ",discharging power=" + str(p_dc_after))
 
-    result_list = [p_ch_after - p_dc_after - p_ch_before, ev_list, aggregator_list, grid]
+    ch_sum = 0
+    dc_sum = 0
+    for j in range(len(ev_list)):
+        if ev_list[j].state == -1:
+            dc_sum += 1
+        if ev_list[j].state == 1:
+            ch_sum += 1
+
+    if p_dc_after > 0:
+        p_result = -p_dc_after
+    else:
+        p_result = p_ch_after
+    result_list = [p_result, ev_list, aggregator_list, grid, ch_sum, dc_sum]
     return result_list

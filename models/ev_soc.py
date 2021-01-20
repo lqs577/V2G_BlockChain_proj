@@ -54,26 +54,30 @@ def arr_soc():
 
 # ev soc changes in minutes
 # each minutes charge 0.003 soc
-def soc_change(soc, state, t, fr_flag):
-    if state == 0:
-        soc = soc
-    elif state == 1:
-        soc += 0.003 * t
-        if soc >= 0.9 and fr_flag == 0:
-            soc = 0.9
-            state = 0
-        elif soc >= 1.0:
-            soc = 1.0
-            state = 0
+def soc_change(ev, t, fr_flag, t1):
+    if ev.state == 0:
+        ev.soc = ev.soc
+    elif ev.state == 1:
+        # ev.soc += 0.003 * t
+        ev.soc += (random.randint(2, 4) / 1000) * t
+        if ev.soc >= 0.9 and fr_flag == 0:
+            ev.soc = 0.9
+            ev.state = 0
+            ev.trans.append([ev.i_v, ev.i_a, 0, t1])
+        elif ev.soc >= 1.0:
+            ev.soc = 1.0
+            ev.state = 0
+            # if fr_flag != 1:
+            #     ev.trans.append([ev.i_v, ev.i_a, 0, t1])
             if fr_flag == 1:
                 fr_flag = 0
-    elif state == -1:
-        soc -= 0.003 * t
-        if soc <= 0.6:
-            soc = 0.6
-            state = 0
+    elif ev.state == -1:
+        ev.soc -= (random.randint(2, 4) / 1000) * t
+        if ev.soc <= 0.6:
+            ev.soc = 0.6
+            ev.state = 0
 
-    return soc, state, fr_flag
+    return ev.soc, ev.state, fr_flag
 
 
 if __name__ == '__main__':

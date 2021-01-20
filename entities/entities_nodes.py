@@ -141,12 +141,13 @@ class Aggregator:
         sorted(list1, key=lambda x: x[1], reverse=True)
         i = 0
         while p > 0 and i < len(list1):
-            ev = self.pile_list[list1[i][0]]
-            self.pile_list[list1[i][0]].start_charge()
-            self.pile_list[list1[i][0]].trans.append([ev.i_v, ev.i_a, 0, t+1])
-            self.pile_list[list1[i][0]].d_fr_flag = 1
-            i += 1
-            p -= self.ch_power
+            if random.random() < 0.8:
+                ev = self.pile_list[list1[i][0]]
+                self.pile_list[list1[i][0]].start_charge()
+                self.pile_list[list1[i][0]].trans.append([ev.i_v, ev.i_a, 0, t + 0.5 + random.randint(0, 80) * 5 / 100])
+                self.pile_list[list1[i][0]].d_fr_flag = 1
+                i += 1
+                p -= self.ch_power
 
     # caculate the power that can be provided for grid by aggregator
     def f_p_prov(self):
